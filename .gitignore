@@ -27,3 +27,12 @@ worker-configuration.d.ts
 # direnv
 .direnv/
 !.envrc
+
+# lc3
+*.obj
+*.lc3
+*.sym
+*.lst
+*.bin
+*.hex
+*.log
