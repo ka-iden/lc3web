@@ -1,5 +1,5 @@
 import { LC3Util } from './lc3_util.js';
-import { lc3os, lc3osSymbols } from './lc3_os.js';
+import { lc3os } from './lc3_os.js';
 import { getb, geth, setb } from './world.js';
 
 class Queue {
@@ -49,12 +49,6 @@ var LC3 = function() {
     // Dictionaries for linking addresses and labels
     this.labelToAddress = {};
     this.addressToLabel = {};
-
-    // Load OS symbols
-    for (var label in lc3osSymbols) {
-        var address = lc3osSymbols[label];
-        this.setLabel(address, label);
-    }
 
     // Exclusive upper bound for normal memory
     // Memory address 0xFE00 and up are mapped to devices
