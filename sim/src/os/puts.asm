@@ -2,7 +2,7 @@
 ;
 ; write the null terminated string starting at the address in r0 to the display
 
-.ORIG x0450
+.ORIG x0460
 
 	st r7, SaveR7
 	st r0, SaveR0
@@ -29,9 +29,6 @@ Done
 
 DSR    .FILL xFE04
 DDR    .FILL xFE06
-
-       .FILL xF3FD ; ???
-       .FILL xF3FE
 
 SaveR0 .BLKW #1
 SaveR1 .BLKW #1

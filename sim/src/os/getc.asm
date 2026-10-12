@@ -3,7 +3,7 @@
 ; poll keyboard status register and read a character from the keyboard data
 ; register into r0
 
-.ORIG x0400
+.ORIG x03E0
 
 	st r7, SaveR7
 

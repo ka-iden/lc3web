@@ -2,7 +2,7 @@
 ;
 ; write the character in r0 to the display
 
-.ORIG x0430
+.ORIG x0420
 
 	st r7, SaveR7
 	st r1, SaveR1

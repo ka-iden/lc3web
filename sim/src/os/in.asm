@@ -16,7 +16,7 @@
 
 	ret
 
-SaveR7 .FILL x3001 ; ???
+SaveR7 .BLKW #1
 
 Prompt .STRINGZ "Input a character> "
 .END

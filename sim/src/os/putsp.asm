@@ -56,9 +56,6 @@ SaveR7Out .BLKW #1
 DDR       .FILL xFE06
 DSR       .FILL xFE04
 
-          .FILL xF3FD ; ???
-          .FILL xF3FE
-
 Mask      .FILL xFF00
 Zero      .FILL #0
 

@@ -2,7 +2,7 @@
 ;
 ; print a message and clear the running bit of the machine control register
 
-.ORIG xFD70 ; ???
+.ORIG x0520
 
 	st r7, SaveR7
 	st r1, SaveR1
