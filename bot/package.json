@@ -5,7 +5,10 @@
 	"type": "module",
 	"private": true,
 	"scripts": {
+		"build": "vite build",
+		"predev": "vite build",
 		"dev": "wrangler dev",
+		"predeploy": "vite build",
 		"deploy": "wrangler deploy",
 		"types": "wrangler types",
 		"check": "tsc --noEmit",
@@ -21,6 +24,7 @@
 		"@types/node-fetch": "^2.6.13",
 		"discord-api-types": "^0.38.56",
 		"typescript": "^5.9.3",
+		"vite": "^6.0.0",
 		"wrangler": "^4.147.0"
 	}
 }

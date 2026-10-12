@@ -4,7 +4,13 @@
 	"description": "Core LC-3 simulator logic",
 	"type": "module",
 	"private": true,
+	"scripts": {
+		"check": "tsc --noEmit"
+	},
 	"exports": {
 		"./*": "./src/*"
+	},
+	"devDependencies": {
+		"typescript": "^6.0.3"
 	}
 }

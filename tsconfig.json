@@ -3,6 +3,6 @@
 	"compilerOptions": {
 		"types": ["node"]
 	},
-	"include": ["eslint.config.ts"],
+	"include": ["eslint.config.ts", "web/**/*.ts", "cli/**/*.ts"],
 	"exclude": ["node_modules", "dist"]
 }

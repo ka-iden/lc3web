@@ -5,12 +5,17 @@
 	"type": "module",
 	"private": true,
 	"bin": {
-		"lc3": "./cli.mjs"
+		"lc3": "./dist/cli.mjs"
 	},
 	"scripts": {
-		"start": "node cli.mjs"
+		"build": "vite build",
+		"prestart": "vite build",
+		"start": "node dist/cli.mjs"
 	},
 	"dependencies": {
 		"@lc3/sim": "workspace:*"
+	},
+	"devDependencies": {
+		"vite": "^6.0.0"
 	}
 }

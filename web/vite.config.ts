@@ -1,10 +1,12 @@
-import { defineConfig } from 'vite';
 import { resolve } from 'path';
+import lc3AsmPlugin from '@lc3/sim/vite-plugin-lc3-asm.js';
+import { defineConfig } from 'vite';
 import { createHtmlPlugin } from 'vite-plugin-html';
 
 export default defineConfig({
 	root: '.',
 	plugins: [
+		lc3AsmPlugin(),
 		createHtmlPlugin({
 			minify: {
 				collapseWhitespace: true,
