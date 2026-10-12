@@ -25,7 +25,8 @@ pnpm bot:types    # regenerate the bot's worker types
 pnpm bot:register # register discord application commands
 pnpm bot:dev      # run the bot locally
 pnpm bot:deploy   # deploy the bot to cloudflare
-pnpm cli          # run the cli tool
+
+./cli/lc3         # run the cli tool
 ```
 
 Run `pnpm bot:types` after changing the Worker configuration to refresh
