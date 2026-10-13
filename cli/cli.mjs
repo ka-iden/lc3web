@@ -35,11 +35,11 @@ async function simulateLC3(lc3) {
 	}
 
 	const utf8 = new TextDecoder();
-	/** @type {'opcode' | 'privilege' | null} */
+	/** @type {'opcode' | 'privilege' | 'access' | null} */
 	let exception = null;
 
 	lc3.addListener(
-		/** @param ev {{ type: 'keyout', value: number } | { type: 'print', value: string } | { type: 'exception', exception: 'opcode' | 'privilege' }} */
+		/** @param ev {{ type: 'keyout', value: number } | { type: 'print', value: string } | { type: 'exception', exception: 'opcode' | 'privilege' | 'access' }} */
 		(ev) => {
 			if (ev.type === 'keyout') {
 				const result = utf8.decode(new Uint8Array([ev.value]), {
@@ -79,7 +79,7 @@ async function simulateLC3(lc3) {
 
 	if (exception) {
 		throw new Error(
-			exception === 'opcode' ? 'Illegal opcode exception' : exception === 'privilege' ? 'Privilege mode exception' : 'Exception',
+			exception === 'opcode' ? 'Illegal opcode exception' : exception === 'privilege' ? 'Privilege mode exception' : 'Access Control Violation',
 		);
 	}
 }
