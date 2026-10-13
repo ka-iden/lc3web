@@ -154,7 +154,7 @@ LC3.prototype.nextInstruction = function() {
     this.fetch();
     var op = this.decode(this.ir);
     var address = this.evaluateAddress(this.pc, op);
-    var operand = this.fetchOperands(address);
+    var operand = this.fetchOperands(op, address);
     var result = this.execute(op, address, operand);
     this.storeResult(op, result);
 
@@ -319,9 +319,17 @@ LC3.prototype.evaluateAddress = function(pc, op) {
         return undefined;
     }
 };
-LC3.prototype.fetchOperands = function(address) {
+LC3.prototype.fetchOperands = function(op, address) {
     if (address === null || address === undefined) {
         return address;
+    }
+    var readsMemory = op.opcode === 2   // LD
+                   || op.opcode === 10  // LDI
+                   || op.opcode === 6   // LDR
+                   || op.opcode === 11; // STI
+    if (readsMemory && this.inPrivilegedMemory(address) && this.getPrivilegeMode()) {
+        this.throwExceptionAndHalt('access');
+        return 0;
     }
     return this.readMemory(address);
 };
@@ -508,26 +516,19 @@ LC3.prototype.execute = function(op, address, operand) {
             if (this.ioLocations.indexOf(address) !== -1) {
                 op.isIO = true;
             }
-            if (this.inPrivilegedMemory(address) && this.getPrivilegeMode()) {
-                this.throwExceptionAndHalt('access');
-            }
             return operand;
         case 10: // LDI
             if (this.ioLocations.indexOf(operand) !== -1) {
                 op.isIO = true;
             }
-            if ((this.inPrivilegedMemory(address)
-                || this.inPrivilegedMemory(operand))
-                    && this.getPrivilegeMode()) {
+            if (this.inPrivilegedMemory(operand) && this.getPrivilegeMode()) {
                 this.throwExceptionAndHalt('access');
+                return 0;
             }
             return this.readMemory(operand);
         case 6: // LDR
             if (this.ioLocations.indexOf(address) !== -1) {
                 op.isIO = true;
-            }
-            if (this.inPrivilegedMemory(address) && this.getPrivilegeMode()) {
-                this.throwExceptionAndHalt('access');
             }
             return operand;
         case 14: // LEA
@@ -557,26 +558,17 @@ LC3.prototype.execute = function(op, address, operand) {
             if (this.ioLocations.indexOf(address) !== -1) {
                 op.isIO = true;
             }
-            if (this.inPrivilegedMemory(address) && this.getPrivilegeMode()) {
-                this.throwExceptionAndHalt('access');
-            }
             this.writeMemory(address, this.getRegister(op.sr));
             return null;
         case 11: // STI
             if (this.ioLocations.indexOf(operand) !== -1) {
                 op.isIO = true;
             }
-            if ((this.inPrivilegedMemory(address) || this.inPrivilegedMemory(operand)) && this.getPrivilegeMode()) {
-                this.throwExceptionAndHalt('access');
-            }
             this.writeMemory(operand, this.getRegister(op.sr));
             return null;
         case 7: // STR
             if (this.ioLocations.indexOf(address) !== -1) {
                 op.isIO = true;
-            }
-            if (this.inPrivilegedMemory(address) && this.getPrivilegeMode()) {
-                this.throwExceptionAndHalt('access');
             }
             this.writeMemory(address, this.getRegister(op.sr));
             return null;
@@ -794,6 +786,10 @@ LC3.prototype.readMemory = function(address) {
     return this.getMemory(address);
 }
 LC3.prototype.writeMemory = function(address, data) {
+    if (this.inPrivilegedMemory(address) && this.getPrivilegeMode()) {
+        this.throwExceptionAndHalt('access');
+        return;
+    }
     if (address === this.ddr) {
         // Writing DDR: must turn of DSR.
         this.setMemory(this.dsr, this.getMemory(this.dsr) & 0x7FFF);
