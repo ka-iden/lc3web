@@ -4,7 +4,6 @@
 
 .ORIG x0460
 
-	st r7, SaveR7
 	st r0, SaveR0
 	st r1, SaveR1
 	st r2, SaveR2
@@ -24,8 +23,8 @@ Done
 	ld r0, SaveR0
 	ld r1, SaveR1
 	ld r2, SaveR2
-	ld r7, SaveR7
-	ret
+
+	rti
 
 DSR    .FILL xFE04
 DDR    .FILL xFE06
@@ -33,6 +32,5 @@ DDR    .FILL xFE06
 SaveR0 .BLKW #1
 SaveR1 .BLKW #1
 SaveR2 .BLKW #1
-SaveR7 .BLKW #1
 
 .END

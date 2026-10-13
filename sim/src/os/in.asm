@@ -4,19 +4,13 @@
 
 .ORIG x04A0
 
-	st r7, SaveR7
-
 	lea r0, Prompt
 	puts
 
 	getc
 	out
 
-	ld r7, SaveR7
-
-	ret
-
-SaveR7 .BLKW #1
+	rti
 
 Prompt .STRINGZ "Input a character> "
 .END

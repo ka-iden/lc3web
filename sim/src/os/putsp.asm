@@ -4,7 +4,6 @@
 
 .ORIG x04E0
 
-	st r7, SaveR7
 	st r0, SaveR0
 	st r1, SaveR1
 	st r2, SaveR2
@@ -48,9 +47,8 @@ Done
 	ld r3, SaveR3
 	ld r4, SaveR4
 	ld r5, SaveR5
-	ld r7, SaveR7
 
-	ret
+	rti
 
 ; output the character in r3, preserves r7
 OutChar
@@ -82,6 +80,5 @@ SaveR2    .BLKW #1
 SaveR3    .BLKW #1
 SaveR4    .BLKW #1
 SaveR5    .BLKW #1
-SaveR7    .BLKW #1
 
 .END

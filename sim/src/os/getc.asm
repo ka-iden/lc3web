@@ -5,20 +5,14 @@
 
 .ORIG x03E0
 
-	st r7, SaveR7
-
 Poll
 	ldi r0, KBSR
 	brzp Poll
 	ldi r0, KBDR
 
-	ld r7, SaveR7
-
-	ret
+	rti
 
 KBSR   .FILL xFE00
 KBDR   .FILL xFE02
-
-SaveR7 .BLKW #1
 
 .END

@@ -4,7 +4,6 @@
 
 .ORIG x0520
 
-	st r7, SaveR7
 	st r1, SaveR1
 	st r0, SaveR0
 
@@ -18,13 +17,11 @@
 
 	ld r0, SaveR0
 	ld r1, SaveR1
-	ld r7, SaveR7
 
-	ret
+	rti
 
 SaveR0    .BLKW #1
 SaveR1    .BLKW #1
-SaveR7    .BLKW #1
 
 Message   .STRINGZ "\n----- Halting the processor ----- \n"
 MCRPtr    .FILL xFFFE

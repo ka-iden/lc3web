@@ -302,19 +302,6 @@ LC3.prototype.fetchOperands = function(address) {
     return this.readMemory(address);
 };
 LC3.prototype.executeTrap = function(op, operand) {
-    /*
-        TODO: do not set R7 for traps
-
-        Patt, Yale N., and Patel, Sanjay J. Introduction to Computing Systems: From Bits & Gates to C/C++ and Beyond. McGraw-Hill Education, 3rd edition.
-        https://icourse.club/uploads/files/96a2b94d4be48285f2605d843a1e6db37da9a944.pdf
-        xvi - Preface - Major Changes in the Third Edition
-
-        The TRAP instruction no longer stores the linkage back to the calling
-        program in R7. Instead, the PC and PSR are pushed onto the system stack
-        and popped by the RTI instruction (renamed Return from Trap or Interrupt)
-        as the last instruction in a trap routine.
-    */
-
     if (false) {}
     // else if (op.trapVector == 0x20) // GETC
     // {
@@ -435,7 +422,27 @@ LC3.prototype.executeTrap = function(op, operand) {
     }
     else
     {
-        this.setRegister(7, this.pc);
+        // switch to the supervisor stack
+        if ((this.psr & 0x8000) !== 0) {
+            this.usp = this.r[6];
+            this.setRegister(6, this.ssp);
+        }
+
+        // stash PSR
+        var r6 = LC3Util.toUint16(this.r[6] - 1);
+        this.setMemory(r6, this.psr);
+
+        // stash PC
+        r6 = LC3Util.toUint16(r6 - 1);
+        this.setMemory(r6, this.pc);
+
+        // set new supervisor stack pointer
+        this.setRegister(6, r6);
+        this.ssp = r6;
+
+        // clear privilege (bit 15)
+        this.setRegister('psr', this.psr & 0x7FFF);
+
         this.setRegister('pc', operand);
         // internal: also increment the depth
         this.subroutineLevel++;
@@ -506,6 +513,15 @@ LC3.prototype.execute = function(op, address, operand) {
                 this.setRegister('pc', this.readMemory(r6));
                 this.setRegister('psr', this.readMemory(r6 + 1));
                 this.setRegister(6, r6 + 2);
+
+                // switch back to the user stack
+                if ((this.psr & 0x8000) !== 0) {
+                    this.ssp = this.r[6];
+                    this.setRegister(6, this.usp);
+                }
+
+                // internal: also decrement the depth
+                this.subroutineLevel--;
             }
             return null;
         case 3: // ST
@@ -804,6 +820,8 @@ LC3.prototype.resetAllRegisters = function() {
     this.x = 0;
     this.y = 0;
     this.z = 0;
+    this.ssp = 0xFDFF;
+    this.usp = 0;
 }
 LC3.prototype.resetMemory = function() {
     for (var i = 0; i < this.memory.length; i++) {
@@ -929,6 +947,10 @@ LC3.prototype.interrupt = function(priorityLevel, newPC) {
     }
 
     // Get supervisor stack pointer
+    if ((this.psr & 0x8000) !== 0) {
+        this.usp = this.getRegister(6);
+        this.setRegister(6, this.ssp);
+    }
     var ssp = this.getRegister(6);
 
     // Stash PSR
@@ -950,6 +972,10 @@ LC3.prototype.interrupt = function(priorityLevel, newPC) {
 
     // Set new supervisor stack pointer
     this.setRegister(6, ssp);
+    this.ssp = ssp;
+
+    // internal: also increment the depth
+    this.subroutineLevel++;
 };
 
 export default LC3;

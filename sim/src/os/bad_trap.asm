@@ -4,17 +4,14 @@
 
 .ORIG x0560
 
-	st r7, SaveR7
 	st r0, SaveR0
 
 	halt
 
 	ld r0, SaveR0
-	ld r7, SaveR7
 
-	ret
+	rti
 
 SaveR0  .BLKW #1
-SaveR7  .BLKW #1
 
 .END

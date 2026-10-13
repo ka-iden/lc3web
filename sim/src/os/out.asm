@@ -4,7 +4,6 @@
 
 .ORIG x0420
 
-	st r7, SaveR7
 	st r1, SaveR1
 
 Poll
@@ -13,14 +12,12 @@ Poll
 	sti r0, DDR
 
 	ld r1, SaveR1
-	ld r7, SaveR7
 
-	ret
+	rti
 
 DSR    .FILL xFE04
 DDR    .FILL xFE06
 
 SaveR1 .BLKW #1
-SaveR7 .BLKW #1
 
 .END
