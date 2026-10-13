@@ -406,7 +406,7 @@ var assemble = (function() {
      * Sample tokenizations:
      *   - '.ORIG x3000' goes to [[".ORIG", "x3000"]]
      *   - 'ADD R1, R2, R3' goes to [["ADD", "R1,R2,R3"]]
-     *   - '.STRINGZ "with spaces"' goes to [[".STRINGZ", "with spaces"]]
+     *   - '.STRINGZ "with spaces"' goes to [[".STRINGZ", '"with spaces"']]
      *   - 'RET  ; go back' goes to [["RET"]]
      *   - '; thing \n RET ; thing \n ; thing' goes to [[], ["RET"], []]
      */
@@ -416,15 +416,11 @@ var assemble = (function() {
     }
 
     // See documentation for tokenize.
-    function tokenizeLine(line, lineIndex) {
+    function tokenizeLine(line) {
         // Trim leading whitespace.
         // We can't trim trailing or interior whitespace or comments at this point
         // because those might belong to string literals.
         var trimmed = line.trimLeft();
-
-        // Include the line number when we parse string literals
-        // so that error messages are more helpful.
-        var parseStringCtx = withContext(parseString, 'on line ' + (lineIndex + 1));
 
         // Now we execute a small state machine.
         // At any point, we can be
@@ -478,7 +474,7 @@ var assemble = (function() {
                     // so we can just read that in. Easy.
                     current += trimmed.charAt(++i);
                 } else if (isQuote && current.length > 1) {
-                    tokens.push(parseStringCtx(current));
+                    tokens.push(current);
                     state = IDLE;
                     current = "";
                 }
@@ -490,7 +486,7 @@ var assemble = (function() {
             if (state === TOKEN) {
                 tokens.push(current);
             } else if (state === STRING) {
-                tokens.push(parseStringCtx(current));
+                tokens.push(current);
             }
         }
 
@@ -600,7 +596,7 @@ var assemble = (function() {
                 }
                 return operand;
             case ".STRINGZ":
-                return operand.length + 1; // for the null-terminator
+                return parseString(operand).length + 1; // for the null-terminator
             default:
                 // Assume it's a normal instruction.
                 return 1;
@@ -752,7 +748,7 @@ var assemble = (function() {
             case ".BLKW":
                 return new Array(Utils.toUint16(parseLiteral(operand))).fill(0);
             case ".STRINGZ":
-                return operand.split('').map(function (c) {
+                return parseString(operand).split('').map(function (c) {
                     return c.charCodeAt(0);
                 }).concat([0]);
             default:
