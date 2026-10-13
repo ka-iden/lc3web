@@ -144,6 +144,12 @@ LC3.prototype.nextInstruction = function() {
     // Store any keypresses since last time.
     this.updateIO();
 
+    // Make sure user programs aren't fetching from privileged memory
+    if (this.inPrivilegedMemory(this.pc) && this.getPrivilegeMode()) {
+        this.throwExceptionAndHalt('access');
+        return;
+    }
+
     // Perform the instruction cycle.
     this.fetch();
     var op = this.decode(this.ir);
@@ -502,15 +508,26 @@ LC3.prototype.execute = function(op, address, operand) {
             if (this.ioLocations.indexOf(address) !== -1) {
                 op.isIO = true;
             }
+            if (this.inPrivilegedMemory(address) && this.getPrivilegeMode()) {
+                this.throwExceptionAndHalt('access');
+            }
             return operand;
         case 10: // LDI
             if (this.ioLocations.indexOf(operand) !== -1) {
                 op.isIO = true;
             }
+            if ((this.inPrivilegedMemory(address)
+                || this.inPrivilegedMemory(operand))
+                    && this.getPrivilegeMode()) {
+                this.throwExceptionAndHalt('access');
+            }
             return this.readMemory(operand);
         case 6: // LDR
             if (this.ioLocations.indexOf(address) !== -1) {
                 op.isIO = true;
+            }
+            if (this.inPrivilegedMemory(address) && this.getPrivilegeMode()) {
+                this.throwExceptionAndHalt('access');
             }
             return operand;
         case 14: // LEA
@@ -540,17 +557,26 @@ LC3.prototype.execute = function(op, address, operand) {
             if (this.ioLocations.indexOf(address) !== -1) {
                 op.isIO = true;
             }
+            if (this.inPrivilegedMemory(address) && this.getPrivilegeMode()) {
+                this.throwExceptionAndHalt('access');
+            }
             this.writeMemory(address, this.getRegister(op.sr));
             return null;
         case 11: // STI
             if (this.ioLocations.indexOf(operand) !== -1) {
                 op.isIO = true;
             }
+            if ((this.inPrivilegedMemory(address) || this.inPrivilegedMemory(operand)) && this.getPrivilegeMode()) {
+                this.throwExceptionAndHalt('access');
+            }
             this.writeMemory(operand, this.getRegister(op.sr));
             return null;
         case 7: // STR
             if (this.ioLocations.indexOf(address) !== -1) {
                 op.isIO = true;
+            }
+            if (this.inPrivilegedMemory(address) && this.getPrivilegeMode()) {
+                this.throwExceptionAndHalt('access');
             }
             this.writeMemory(address, this.getRegister(op.sr));
             return null;
