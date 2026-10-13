@@ -660,9 +660,12 @@ var assemble = (function() {
                     };
                     switch (command.toUpperCase()) {
                         case ".BLKW":
-                        case ".FILL":
                             ensureUnary();
                             return parseLiteral(operands[0]);
+                        case ".FILL":
+                            ensureUnary();
+                            // possibly a label resolved later
+                            return null;
                         case ".STRINGZ":
                             ensureUnary();
                             return operands[0]; // already a string, from tokenize
@@ -729,22 +732,42 @@ var assemble = (function() {
     }
 
     /*
+     * Parse the operand of a .FILL directive, which is either a number
+     * or the name of a label (in which case it fills in the label's address).
+     * The symbols parameter maps label names to addresses.
+     */
+
+    function parseFillOperand(operand, symbols) {
+        var asLiteral = handleErrors(parseLiteral)(operand);
+        if (asLiteral.success) {
+            return Utils.toUint16(asLiteral.result);
+        }
+
+        var address = symbols === undefined ? undefined : symbols[operand];
+        if (address === undefined) {
+            throw new Error('the .FILL operand \'' + operand + '\' is not a valid number, ' + 'but I can\'t find it in the symbol table either; ' + 'did you misspell a label name?');
+        }
+
+        return Utils.toUint16(address);
+    }
+
+    /*
      * Generate the machine code output for an assembly directive.
      * The tokens parameter should be a single tokenized line, excluding any label.
      * The result is an array of LC-3 machine words (integers)
      * to be appended to the machine code.
      *
-     * Assembly directives don't depend on the current PC or the symbol table,
-     * so these don't need to be passed in as arguments.
+     * Assembly directives don't depend on the current PC,
+     * but .FILL can refer to a label, so the symbol table is needed.
      */
 
-    function encodeDirective(tokens) {
+    function encodeDirective(tokens, symbols) {
         var directive = tokens[0];
         var operand = tokens[1];
 
         switch (directive.toUpperCase()) {
             case ".FILL":
-                return [Utils.toUint16(parseLiteral(operand))];
+                return [parseFillOperand(operand, symbols)];
             case ".BLKW":
                 return new Array(Utils.toUint16(parseLiteral(operand))).fill(0);
             case ".STRINGZ":
@@ -953,7 +976,7 @@ var assemble = (function() {
                 if (state.seenEndDirective) {
                     return state;
                 }
-                return appendCode(state, encodeDirective(line));
+                return appendCode(state, encodeDirective(line, symbols));
             },
             handleInstruction: function handleInstruction(state, line) {
                 if (state.seenEndDirective) {
