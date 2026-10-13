@@ -932,6 +932,43 @@ LC3.prototype.unhalt = function() {
 }
 
 /*
+ * Load a block of words into memory starting at orig.
+ * Returns true on success. Notifies listeners on ACV,
+ * halts, and returns false.
+ */
+LC3.prototype.loadWords = function(orig, words) {
+    for (var i = 0; i < words.length; i++) {
+        if (this.inPrivilegedMemory(orig + i)) {
+            this.throwExceptionAndHalt('access');
+            return false;
+        }
+        this.setMemory(orig + i, words[i]);
+    }
+    return true;
+}
+
+/*
+ * Load an object files bytes into memory (little-endian)
+ * and set the PC to the origin.
+ * Returns true on success, false on ACV.
+ */
+LC3.prototype.loadObjectData = function(raw) {
+    var data = new Array(raw.length / 2);
+    for (var i = 0; i < data.length; i++) {
+        var lo = raw[2 * i + 1];
+        var hi = raw[2 * i] << 8;
+        data[i] = lo | hi;
+    }
+
+    var orig = data[0];
+    if (!this.loadWords(orig, data.slice(1))) {
+        return false;
+    }
+    this.setRegister('pc', orig);
+    return true;
+}
+
+/*
  * Load an assembly result into the LC-3.
  * Return true on success, false on failure.
  */
@@ -945,8 +982,8 @@ LC3.prototype.loadAssembled = function(assemblyResult) {
     var symbols = assemblyResult.symbolTable || {};
 
     // Add all the instructions.
-    for (var i = 0; i < mc.length; i++) {
-        this.setMemory(orig + i, mc[i]);
+    if (!this.loadWords(orig, mc)) {
+        return false;
     }
 
     // Add all the symbols.

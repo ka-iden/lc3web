@@ -107,21 +107,10 @@ function assembleSourceToObjectFile(source, output) {
 function loadObjectFile(filePath) {
 	const raw = new Uint8Array(readFileSync(filePath));
 
-	// endianness is reversed in object file
-	const data = new Array(raw.length / 2);
-	for (let i = 0; i < data.length; i++) {
-		const lo = raw[2 * i + 1];
-		const hi = raw[2 * i] << 8;
-		data[i] = lo | hi;
-	}
-
-	// load into lc3 memory
 	const lc3 = new LC3();
-	const orig = data[0];
-	for (let i = 1; i < data.length; i++) {
-		lc3.setMemory(orig + i - 1, data[i]);
+	if (!lc3.loadObjectData(raw)) {
+		throw new Error('Access Control Violation');
 	}
-	lc3.setRegister('pc', orig);
 
 	return lc3;
 }
