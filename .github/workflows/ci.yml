@@ -30,3 +30,11 @@ jobs:
 
             - name: Format
               run: pnpm format:check
+
+            - uses: twhlynch/lc3-test-suite@v3
+              with:
+                  assemble: '$GITHUB_WORKSPACE/cli/lc3 --assemble %s %o'
+                  emulate: '$GITHUB_WORKSPACE/cli/lc3 --simulate %o'
+                  timeout: '30'
+                  extensions: 'false'
+                  suppress: '14'
