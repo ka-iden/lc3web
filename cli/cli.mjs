@@ -35,9 +35,11 @@ async function simulateLC3(lc3) {
 	}
 
 	const utf8 = new TextDecoder();
+	/** @type {'opcode' | 'privilege' | null} */
+	let exception = null;
 
 	lc3.addListener(
-		/** @param ev {{ type: 'keyout', value: number } | { type: 'print', value: string }} */
+		/** @param ev {{ type: 'keyout', value: number } | { type: 'print', value: string } | { type: 'exception', exception: 'opcode' | 'privilege' }} */
 		(ev) => {
 			if (ev.type === 'keyout') {
 				const result = utf8.decode(new Uint8Array([ev.value]), {
@@ -46,6 +48,8 @@ async function simulateLC3(lc3) {
 				if (result) process.stdout.write(result);
 			} else if (ev.type === 'print') {
 				process.stdout.write(ev.value);
+			} else if (ev.type === 'exception') {
+				exception = ev.exception;
 			}
 		},
 	);
@@ -71,6 +75,12 @@ async function simulateLC3(lc3) {
 	// restore terminal
 	if (process.stdin.isTTY) {
 		process.stdin.setRawMode(false);
+	}
+
+	if (exception) {
+		throw new Error(
+			exception === 'opcode' ? 'Illegal opcode exception' : exception === 'privilege' ? 'Privilege mode exception' : 'Exception',
+		);
 	}
 }
 
