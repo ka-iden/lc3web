@@ -319,47 +319,47 @@ LC3.prototype.executeTrap = function(op, operand) {
     // else if (op.trapVector == 0x20) // GETC
     // {
     // }
-    else if (op.trapVector == 0x21) // OUT
-    {
-        this.notifyListeners({
-            type: 'keyout',
-            value: this.r[0],
-        });
-    }
-    else if (op.trapVector == 0x22) // PUTS
-    {
-        for (let addr = this.r[0]; ; addr++) {
-            const char = this.readMemory(addr);
-            if (char === 0) break;
-            this.notifyListeners({
-                type: 'keyout',
-                value: char,
-            });
-        }
-    }
+    // else if (op.trapVector == 0x21) // OUT
+    // {
+    //     this.notifyListeners({
+    //         type: 'keyout',
+    //         value: this.r[0],
+    //     });
+    // }
+    // else if (op.trapVector == 0x22) // PUTS
+    // {
+    //     for (let addr = this.r[0]; ; addr++) {
+    //         const char = this.readMemory(addr);
+    //         if (char === 0) break;
+    //         this.notifyListeners({
+    //             type: 'keyout',
+    //             value: char,
+    //         });
+    //     }
+    // }
     // else if (op.trapVector == 0x23) // IN
     // {
     // }
-    else if (op.trapVector == 0x24) // PUTSP
-    {
-        for (let addr = this.r[0]; ; addr++) {
-            const word = this.readMemory(addr);
-            if (word === 0) break;
-            const char1 = word & 0xFF;
-            const char2 = (word >> 8) & 0xFF;
-
-            if (char1 === 0) break;
-            this.notifyListeners({
-                type: 'keyout',
-                value: char1,
-            });
-            if (char2 === 0) break;
-            this.notifyListeners({
-                type: 'keyout',
-                value: char2,
-            });
-        }
-    }
+    // else if (op.trapVector == 0x24) // PUTSP
+    // {
+    //     for (let addr = this.r[0]; ; addr++) {
+    //         const word = this.readMemory(addr);
+    //         if (word === 0) break;
+    //         const char1 = word & 0xFF;
+    //         const char2 = (word >> 8) & 0xFF;
+    //
+    //         if (char1 === 0) break;
+    //         this.notifyListeners({
+    //             type: 'keyout',
+    //             value: char1,
+    //         });
+    //         if (char2 === 0) break;
+    //         this.notifyListeners({
+    //             type: 'keyout',
+    //             value: char2,
+    //         });
+    //     }
+    // }
     // else if (op.trapVector == 0x25) // HALT
     // {
     // }
