@@ -101,6 +101,24 @@ LC3.prototype.formatAddress = function(address) {
     return (label !== undefined) ? label : LC3Util.toHexString(address);
 };
 
+LC3.prototype.getPrivilegeMode = function() {
+    // This bit being set to 1 means the program is running in user mode
+    return (this.psr & 0x8000) !== 0;
+}
+
+LC3.prototype.inPrivilegedMemory = function(address) {
+    // Checks if the address is in privileged memory
+    return (address < 0x3000) || (address >= 0xFE00);
+}
+
+LC3.prototype.throwExceptionAndHalt = function(exception) {
+    this.notifyListeners({
+        type: 'exception',
+        exception: exception
+    });
+    this.halt();
+}
+
 LC3.prototype.getConditionCode = function() {
     var n = (this.psr & 4) !== 0;
     var z = (this.psr & 2) !== 0;
@@ -423,7 +441,7 @@ LC3.prototype.executeTrap = function(op, operand) {
     else
     {
         // switch to the supervisor stack
-        if ((this.psr & 0x8000) !== 0) {
+        if (this.getPrivilegeMode()) {
             this.usp = this.r[6];
             this.setRegister(6, this.ssp);
         }
@@ -500,14 +518,8 @@ LC3.prototype.execute = function(op, address, operand) {
         case 9: // NOT
             return LC3Util.toUint16(~this.getRegister(op.sr));
         case 8: // RTI
-            if ((this.psr & 0x8000) !== 0) {
-                // Privilege mode exception
-                var ev = {
-                    type: 'exception',
-                    exception: 'privilege'
-                };
-                this.notifyListeners(ev);
-                this.halt();
+            if (this.getPrivilegeMode()) {
+                this.throwExceptionAndHalt('privilege');
             } else {
                 var r6 = this.r[6];
                 this.setRegister('pc', this.readMemory(r6));
@@ -515,7 +527,7 @@ LC3.prototype.execute = function(op, address, operand) {
                 this.setRegister(6, r6 + 2);
 
                 // switch back to the user stack
-                if ((this.psr & 0x8000) !== 0) {
+                if (this.getPrivilegeMode()) {
                     this.ssp = this.r[6];
                     this.setRegister(6, this.usp);
                 }
@@ -546,13 +558,7 @@ LC3.prototype.execute = function(op, address, operand) {
             this.executeTrap(op, operand);
             return null;
         case 13:
-            // Illegal opcode exception
-            var ev = {
-                type: 'exception',
-                exception: 'opcode'
-            };
-            this.notifyListeners(ev);
-            this.halt();
+            this.throwExceptionAndHalt('opcode');
             return null;
         default:
             return undefined;
@@ -947,7 +953,7 @@ LC3.prototype.interrupt = function(priorityLevel, newPC) {
     }
 
     // Get supervisor stack pointer
-    if ((this.psr & 0x8000) !== 0) {
+    if (this.getPrivilegeMode()) {
         this.usp = this.getRegister(6);
         this.setRegister(6, this.ssp);
     }
