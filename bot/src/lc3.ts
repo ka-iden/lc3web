@@ -18,8 +18,13 @@ export function runLC3(code: string, input = ''): string {
 	}
 	const decoder = new TextDecoder();
 	let output = '';
+	let exception: 'opcode' | 'privilege' | null = null;
 
-	lc3.addListener((event: { type: string; value?: number | string }) => {
+	lc3.addListener((event: { type: string; value?: number | string; exception?: 'opcode' | 'privilege' }) => {
+		if (event.type === 'exception') {
+			exception = event.exception ?? 'opcode';
+			return;
+		}
 		if (output.length >= max_output_length) return;
 
 		if (event.type === 'keyout') {
@@ -51,7 +56,10 @@ export function runLC3(code: string, input = ''): string {
 		}
 
 		output = (output + decoder.decode()).slice(0, max_output_length);
-		if (output.length >= max_output_length) {
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+		if (exception) {
+			output += exception === 'opcode' ? '\n[Illegal opcode exception]' : '\n[Privilege mode exception]';
+		} else if (output.length >= max_output_length) {
 			output += '\n[Output limit reached]';
 		} else if (inputExhausted) {
 			output += '\n[Input exhausted. Run again with more input.]';
